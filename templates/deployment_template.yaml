@@ -1,0 +1,409 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: IVS CloudWatch Dashboard - Includes IVS service events and visualization through CloudWatch Dashboard
+
+Resources:
+
+  EventIngestApi:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Description: API Gateway endpoint to ingest the events coming from IVS -> Event Bridge
+      Name: !Sub ${AWS::StackName}-v1
+      FailOnWarnings: true
+      EndpointConfiguration:
+        Types:
+          - REGIONAL
+    Metadata:
+        Comment: "API Gateway endpoint to ingest the events coming from IVS -> Event Bridge"
+
+  StateChangeIngestApiPOST:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: AWS_IAM
+      HttpMethod: POST
+      Integration:
+        Type: AWS
+        Credentials: !GetAtt EventIngestEndpointRole.Arn
+        IntegrationHttpMethod: POST
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:monitoring:action/PutMetricData"
+        IntegrationResponses:
+          -
+            StatusCode: '200'
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            ResponseTemplates: {"application/json": "{ }"}
+        PassthroughBehavior: WHEN_NO_TEMPLATES
+        RequestParameters:
+          integration.request.querystring.Namespace: !Sub "'${AWS::StackName}-metrics'"
+          integration.request.querystring.Version: "'2010-08-01'"
+          integration.request.header.Content-Type: "'application/x-amz-json-1.1'"
+          integration.request.querystring.MetricData.member.1.MetricName: "'sample1'"
+          integration.request.querystring.MetricData.member.1.Unit: "'Count'"
+          integration.request.querystring.MetricData.member.1.Value: "'1'"
+        RequestTemplates:
+          application/json: |
+              #set($inputRoot = $input.path('$'))
+              #set($context.requestOverride.querystring['MetricData.member.1.MetricName'] = $inputRoot.detail.event_name)
+      ResourceId: !Ref StateChangeIngestApiResource
+      RestApiId: !Ref EventIngestApi
+      MethodResponses:
+        -
+          StatusCode: '200'
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Origin: true
+          ResponseModels: { "application/json": "Empty" }
+
+  StateChangeIngestApiResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref EventIngestApi
+      ParentId: !GetAtt EventIngestApi.RootResourceId
+      PathPart: statechange-aggregates
+
+  LimitBreachIngestApiPOST:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      AuthorizationType: AWS_IAM
+      HttpMethod: POST
+      Integration:
+        Type: AWS
+        Credentials: !GetAtt EventIngestEndpointRole.Arn
+        IntegrationHttpMethod: POST
+        Uri: !Sub "arn:aws:apigateway:${AWS::Region}:monitoring:action/PutMetricData"
+        IntegrationResponses:
+          -
+            StatusCode: '200'
+            ResponseParameters:
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+            ResponseTemplates: {"application/json": "{ }"}
+        PassthroughBehavior: WHEN_NO_TEMPLATES
+        RequestParameters:
+          integration.request.querystring.Namespace: !Sub "'${AWS::StackName}-metrics'"
+          integration.request.header.Content-Type: "'application/x-amz-json-1.1'"
+          integration.request.querystring.Version: "'2010-08-01'"
+          integration.request.querystring.MetricData.member.1.MetricName: "'sample2'"
+          integration.request.querystring.MetricData.member.1.Unit: "'Count'"
+          integration.request.querystring.MetricData.member.1.Value: "'1'"
+        RequestTemplates:
+          application/json: |
+              #set($inputRoot = $input.path('$'))
+              #set($context.requestOverride.querystring['MetricData.member.1.MetricName'] = $inputRoot.detail.limit_name)
+      ResourceId: !Ref LimitBreachIngestApiResource
+      RestApiId: !Ref EventIngestApi
+      MethodResponses:
+        -
+          StatusCode: '200'
+          ResponseParameters:
+            method.response.header.Access-Control-Allow-Origin: true
+          ResponseModels: { "application/json": "Empty" }
+
+  LimitBreachIngestApiResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref EventIngestApi
+      ParentId: !GetAtt EventIngestApi.RootResourceId
+      PathPart: limitbreach-aggregates
+
+  EventIngestApiDeployment:
+    Type: AWS::ApiGateway::Deployment
+    DependsOn:
+      - StateChangeIngestApiPOST
+      - LimitBreachIngestApiPOST
+    Properties:
+      RestApiId: !Ref EventIngestApi
+
+  EventIngestApiStage:
+    Type: AWS::ApiGateway::Stage
+    Properties:
+      RestApiId: !Ref EventIngestApi
+      DeploymentId: !Ref EventIngestApiDeployment
+      StageName: prod
+
+  EventIngestEndpointRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      Policies:
+        - PolicyName: CustomPolicy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Action:
+                  - cloudwatch:PutMetricData
+                Effect: Allow
+                Resource: "*"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+            Effect: "Allow"
+            Principal:
+              Service:
+                - "apigateway.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      Path: "/service-role/"
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"
+
+  IVSStreamChangeEventRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Description: "IVS EventBridge Rule to publish events when API GW to be sent to CW"
+      State: "ENABLED"
+      EventPattern: { "source": [ "aws.ivs" ], "detail-type": [ "IVS Stream State Change" ] }
+      Targets:
+        -
+          Arn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${EventIngestApi}/prod/POST/statechange-aggregates"
+          Id: 'IVSCWAPIGWId'
+          RoleArn: !GetAtt IVSCWEventBridgeRuleRole.Arn
+
+  IVSLimitBreachEventRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Description: "IVS EventBridge Rule to publish events when API GW to be sent to CW"
+      State: "ENABLED"
+      EventPattern: { "source": [ "aws.ivs" ], "detail-type": [ "IVS Limit Breach" ] }
+      Targets:
+        -
+          Arn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${EventIngestApi}/prod/POST/limitbreach-aggregates"
+          Id: 'IVSCWAPIGWId'
+          RoleArn: !GetAtt IVSCWEventBridgeRuleRole.Arn
+
+  IVSCWEventBridgeRuleRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      Path: /service-role/
+      Policies:
+        - PolicyName: CustomPolicy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Action:
+                  - execute-api:Invoke
+                  - execute-api:ManageConnections
+                Effect: Allow
+                Resource:
+                  - !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${EventIngestApi}/prod/*
+                Condition:
+                  StringEquals:
+                    'aws:SourceAccount': !Ref 'AWS::AccountId'
+
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Action:
+              - 'sts:AssumeRole'
+            Effect: Allow
+            Principal:
+              Service:
+                - events.amazonaws.com
+
+  IVSCWDashboard:
+    Type: AWS::CloudWatch::Dashboard
+    Properties:
+      DashboardName: !Sub "${AWS::StackName}-dashboard"
+      DashboardBody: !Sub |
+        {
+            "start": "-PT1H",
+            "widgets": [
+                {
+                    "height": 6,
+                    "width": 15,
+                    "y": 11,
+                    "x": 9,
+                    "type": "metric",
+                    "properties": {
+                        "metrics": [
+                            [ "${AWS::StackName}-metrics", "Stream Start" ],
+                            [ ".", "Stream End" ]
+                        ],
+                        "view": "timeSeries",
+                        "stacked": false,
+                        "region": "${AWS::Region}",
+                        "title": " ",
+                        "stat": "Sum",
+                        "period": 300,
+                        "liveData": true,
+                        "setPeriodToTimeRange": true,
+                        "legend": {
+                            "position": "bottom"
+                        }
+                    }
+                },
+                {
+                    "height": 3,
+                    "width": 12,
+                    "y": 1,
+                    "x": 12,
+                    "type": "metric",
+                    "properties": {
+                        "metrics": [
+                            [ "AWS/IVS", "ConcurrentViews", { "stat": "Average" } ],
+                            [ ".", "LiveDeliveredTime" ]
+                        ],
+                        "view": "singleValue",
+                        "stacked": false,
+                        "region": "${AWS::Region}",
+                        "stat": "Sum",
+                        "period": 300,
+                        "setPeriodToTimeRange": true,
+                        "title": " "
+                    }
+                },
+                {
+                    "height": 3,
+                    "width": 12,
+                    "y": 18,
+                    "x": 12,
+                    "type": "metric",
+                    "properties": {
+                        "metrics": [
+                            [ "${AWS::StackName}-metrics", "Ingest Bitrate", { "id": "m1" } ],
+                            [ ".", "Ingest Resolution", { "id": "m2" } ]
+                        ],
+                        "view": "singleValue",
+                        "stacked": false,
+                        "region": "${AWS::Region}",
+                        "stat": "Sum",
+                        "period": 300,
+                        "setPeriodToTimeRange": true,
+                        "title": " "
+                    }
+                },
+                {
+                    "height": 3,
+                    "width": 12,
+                    "y": 18,
+                    "x": 0,
+                    "type": "metric",
+                    "properties": {
+                        "metrics": [
+                            [ "${AWS::StackName}-metrics", "Concurrent Broadcasts", { "label": "Concurrent Streams" } ],
+                            [ ".", "Concurrent Viewers", { "label": "Concurrent Views" } ]
+                        ],
+                        "view": "singleValue",
+                        "stacked": false,
+                        "region": "${AWS::Region}",
+                        "title": " ",
+                        "stat": "Sum",
+                        "period": 300,
+                        "liveData": true,
+                        "setPeriodToTimeRange": true
+                    }
+                },
+                {
+                    "height": 1,
+                    "width": 12,
+                    "y": 0,
+                    "x": 12,
+                    "type": "text",
+                    "properties": {
+                        "markdown": "\n## Usage - Output\n"
+                    }
+                },
+                {
+                    "height": 1,
+                    "width": 24,
+                    "y": 10,
+                    "x": 0,
+                    "type": "text",
+                    "properties": {
+                        "markdown": "\n## Stream State Changes\n"
+                    }
+                },
+                {
+                    "height": 1,
+                    "width": 24,
+                    "y": 17,
+                    "x": 0,
+                    "type": "text",
+                    "properties": {
+                        "markdown": "\n## Limit/Quota Breaches\n"
+                    }
+                },
+                {
+                    "height": 6,
+                    "width": 9,
+                    "y": 11,
+                    "x": 0,
+                    "type": "metric",
+                    "properties": {
+                        "metrics": [
+                            [ "${AWS::StackName}-metrics", "Stream Start", { "label": "Stream Start" } ],
+                            [ ".", "Stream End" ],
+                            [ ".", "Stream Failure" ]
+                        ],
+                        "view": "singleValue",
+                        "stacked": false,
+                        "region": "${AWS::Region}",
+                        "title": " ",
+                        "stat": "Sum",
+                        "period": 300,
+                        "liveData": true,
+                        "setPeriodToTimeRange": true
+                    }
+                },
+                {
+                    "height": 1,
+                    "width": 12,
+                    "y": 0,
+                    "x": 0,
+                    "type": "text",
+                    "properties": {
+                        "markdown": "\n## Usage - Input\n"
+                    }
+                },
+                {
+                    "height": 3,
+                    "width": 12,
+                    "y": 1,
+                    "x": 0,
+                    "type": "metric",
+                    "properties": {
+                        "metrics": [
+                            [ "AWS/IVS", "LiveDeliveredTime", { "visible": false } ],
+                            [ ".", "ConcurrentStreams", { "stat": "Average" } ],
+                            [ ".", "LiveInputTime" ]
+                        ],
+                        "view": "singleValue",
+                        "stacked": false,
+                        "region": "${AWS::Region}",
+                        "stat": "Sum",
+                        "period": 300,
+                        "setPeriodToTimeRange": true,
+                        "title": " "
+                    }
+                },
+                {
+                    "height": 6,
+                    "width": 24,
+                    "y": 4,
+                    "x": 0,
+                    "type": "metric",
+                    "properties": {
+                        "metrics": [
+                            [ "${AWS::StackName}-metrics", "Stream Start", { "visible": false } ],
+                            [ ".", "Stream End", { "visible": false, "stat": "Sum" } ],
+                            [ "AWS/IVS", "ConcurrentStreams" ],
+                            [ ".", "ConcurrentViews" ]
+                        ],
+                        "view": "timeSeries",
+                        "stacked": false,
+                        "region": "${AWS::Region}",
+                        "title": " ",
+                        "stat": "Average",
+                        "period": 300,
+                        "liveData": false,
+                        "setPeriodToTimeRange": true,
+                        "legend": {
+                            "position": "bottom"
+                        }
+                    }
+                }
+            ]
+        }
+
+Outputs:
+  MonitoringDashboard:
+    Value: !Sub
+      - https://${AWS::Region}.console.aws.amazon.com/cloudwatch/home?region=${AWS::Region}#dashboards:name=${DashboardName}
+      - { DashboardName: !Ref IVSCWDashboard}
