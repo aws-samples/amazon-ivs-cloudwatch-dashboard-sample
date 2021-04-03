@@ -1,0 +1,8 @@
+# Makefile variations
+Makefile
+
+# build artifacts
+dist/
+dist/*.yaml
+
+.DS_Store
