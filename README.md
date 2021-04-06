@@ -4,7 +4,7 @@ The reference solution show you how to create a CloudWatch dashboard that monito
 
 ## Launching solution with Pre-built AWS CloudFormation Template
 
-The solution is deployed using an AWS CloudFormation template with AWS Lambda backed custom resources. To deploy the solution, use one of the following CloudFormation templates and follows the instructions.
+The solution is built from CloudWatch metrics emitted by Amazon IVS, as well as an event processor solution which takes Events emitted by Amazon IVS and converts these into CloudWatch Metrics.To deploy the solution, use one of the following CloudFormation templates and follows the instructions.
 
 | AWS Region | AWS CloudFormation Template URL |
 |:-----------|:----------------------------|
