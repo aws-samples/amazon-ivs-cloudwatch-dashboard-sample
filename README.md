@@ -2,9 +2,10 @@
 
 The reference solution show you how to create a CloudWatch dashboard that monitors usage, changes in stream state, and breaches of limits across all of your IVS live streams. We also explore creating alarms that you can use to detect if your streams experience a failure or otherwise move outside of normal performance expectations.
 
-## Launching solution with Pre-built AWS CloudFormation Template
+The solution taps into CloudWatch metrics emitted by Amazon IVS, as well as an event processor solution which takes Events emitted by Amazon IVS and converts these into CloudWatch Metrics.
 
-The solution is built from CloudWatch metrics emitted by Amazon IVS, as well as an event processor solution which takes Events emitted by Amazon IVS and converts these into CloudWatch Metrics.To deploy the solution, use one of the following CloudFormation templates and follows the instructions.
+## Launching solution with Pre-built AWS CloudFormation Template
+To deploy the solution, use one of the following CloudFormation templates and follows the instructions.
 
 | AWS Region | AWS CloudFormation Template URL |
 |:-----------|:----------------------------|
