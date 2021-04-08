@@ -202,205 +202,290 @@ Resources:
     Properties:
       DashboardName: !Sub "${AWS::StackName}-dashboard"
       DashboardBody: !Sub |
-        {
-            "start": "-PT1H",
-            "widgets": [
-                {
-                    "height": 6,
-                    "width": 15,
-                    "y": 11,
-                    "x": 9,
-                    "type": "metric",
-                    "properties": {
-                        "metrics": [
-                            [ "${AWS::StackName}-metrics", "Stream Start" ],
-                            [ ".", "Stream End" ]
-                        ],
-                        "view": "timeSeries",
-                        "stacked": false,
-                        "region": "${AWS::Region}",
-                        "title": " ",
-                        "stat": "Sum",
-                        "period": 300,
-                        "liveData": true,
-                        "setPeriodToTimeRange": true,
-                        "legend": {
-                            "position": "bottom"
+            {
+                "start": "-PT1H",
+                "widgets": [
+                    {
+                        "height": 3,
+                        "width": 12,
+                        "y": 8,
+                        "x": 12,
+                        "type": "metric",
+                        "properties": {
+                            "metrics": [
+                                [ "${AWS::StackName}-metrics", "Ingest Bitrate", { "id": "m1", "label": "Max Bitrate Exceeded" } ],
+                                [ ".", "Ingest Resolution", { "id": "m2", "label": "Max Resolution Exceeded" } ]
+                            ],
+                            "view": "singleValue",
+                            "stacked": false,
+                            "region": "${AWS::Region}",
+                            "stat": "Sum",
+                            "period": 300,
+                            "setPeriodToTimeRange": true,
+                            "title": "Ingest Limit Breaches"
+                        }
+                    },
+                    {
+                        "height": 3,
+                        "width": 12,
+                        "y": 11,
+                        "x": 12,
+                        "type": "metric",
+                        "properties": {
+                            "metrics": [
+                                [ "${AWS::StackName}-metrics", "Concurrent Broadcasts", { "label": "ConcurrentStreams Exceeded", "color": "#2ca02c" } ],
+                                [ ".", "Concurrent Viewers", { "label": "ConcurrentViews Exceeded", "color": "#d62728" } ]
+                            ],
+                            "view": "singleValue",
+                            "stacked": false,
+                            "region": "${AWS::Region}",
+                            "title": "Concurrency Limit Breaches",
+                            "stat": "Sum",
+                            "period": 300,
+                            "liveData": true,
+                            "setPeriodToTimeRange": true
+                        }
+                    },
+                    {
+                        "height": 6,
+                        "width": 9,
+                        "y": 8,
+                        "x": 3,
+                        "type": "metric",
+                        "properties": {
+                            "metrics": [
+                                [ "${AWS::StackName}-metrics", "Stream Start", { "label": "Stream Start" } ],
+                                [ ".", "Stream End" ],
+                                [ ".", "Stream Failure", { "color": "#d62728" } ]
+                            ],
+                            "view": "timeSeries",
+                            "stacked": false,
+                            "region": "${AWS::Region}",
+                            "title": "Stream Starts, Ends and Failures",
+                            "stat": "Sum",
+                            "period": 60,
+                            "liveData": true,
+                            "setPeriodToTimeRange": true
+                        }
+                    },
+                    {
+                        "height": 6,
+                        "width": 9,
+                        "y": 1,
+                        "x": 3,
+                        "type": "metric",
+                        "properties": {
+                            "metrics": [
+                                [ "${AWS::StackName}-metrics", "Stream Start", { "visible": false } ],
+                                [ ".", "Stream End", { "visible": false, "stat": "Sum" } ],
+                                [ "AWS/IVS", "ConcurrentStreams", { "stat": "Maximum", "label": "AWS/IVS ConcurrentStreams Maximum" } ],
+                                [ "...", { "label": "AWS/IVS ConcurrentStreams Average" } ],
+                                [ ".", "ConcurrentViews", { "visible": false } ]
+                            ],
+                            "view": "timeSeries",
+                            "stacked": false,
+                            "region": "${AWS::Region}",
+                            "title": "Concurrent Streams",
+                            "stat": "Average",
+                            "period": 60,
+                            "liveData": false,
+                            "setPeriodToTimeRange": true,
+                            "legend": {
+                                "position": "bottom"
+                            }
+                        }
+                    },
+                    {
+                        "height": 6,
+                        "width": 9,
+                        "y": 1,
+                        "x": 15,
+                        "type": "metric",
+                        "properties": {
+                            "metrics": [
+                                [ "${AWS::StackName}-metrics", "Stream Start", { "visible": false, "stat": "Average" } ],
+                                [ ".", "Stream End", { "visible": false, "stat": "Sum" } ],
+                                [ "AWS/IVS", "ConcurrentStreams", { "visible": false } ],
+                                [ ".", "ConcurrentViews", { "label": "AWS/IVS ConcurrentViews Maximum" } ],
+                                [ "...", { "label": "AWS/IVS ConcurrentViews Average", "stat": "Average" } ]
+                            ],
+                            "view": "timeSeries",
+                            "stacked": false,
+                            "region": "${AWS::Region}",
+                            "title": "Concurrent Views",
+                            "stat": "Maximum",
+                            "period": 60,
+                            "liveData": false,
+                            "setPeriodToTimeRange": true,
+                            "legend": {
+                                "position": "bottom"
+                            }
+                        }
+                    },
+                    {
+                        "height": 3,
+                        "width": 3,
+                        "y": 1,
+                        "x": 12,
+                        "type": "metric",
+                        "properties": {
+                            "metrics": [
+                                [ "${AWS::StackName}-metrics", "Stream Start", { "visible": false, "stat": "Average" } ],
+                                [ ".", "Stream End", { "visible": false, "stat": "Sum" } ],
+                                [ "AWS/IVS", "ConcurrentStreams", { "visible": false } ],
+                                [ ".", "ConcurrentViews" ]
+                            ],
+                            "view": "singleValue",
+                            "stacked": false,
+                            "region": "${AWS::Region}",
+                            "title": "Current Views",
+                            "stat": "Maximum",
+                            "period": 60,
+                            "liveData": true,
+                            "setPeriodToTimeRange": false,
+                            "legend": {
+                                "position": "hidden"
+                            }
+                        }
+                    },
+                    {
+                        "height": 1,
+                        "width": 12,
+                        "y": 0,
+                        "x": 12,
+                        "type": "text",
+                        "properties": {
+                            "markdown": "\n## Usage - Output\n"
+                        }
+                    },
+                    {
+                        "height": 1,
+                        "width": 12,
+                        "y": 7,
+                        "x": 12,
+                        "type": "text",
+                        "properties": {
+                            "markdown": "\n## Limit Breaches\n"
+                        }
+                    },
+                    {
+                        "height": 3,
+                        "width": 3,
+                        "y": 4,
+                        "x": 0,
+                        "type": "metric",
+                        "properties": {
+                            "metrics": [
+                                [ "AWS/IVS", "LiveInputTime", { "id": "m1", "stat": "Sum" } ],
+                                [ { "expression": "ANOMALY_DETECTION_BAND(m1, 2)", "label": "LiveInputTime (expected)", "id": "ad1", "color": "#95A5A6", "visible": false, "region": "us-west-2" } ]
+                            ],
+                            "view": "singleValue",
+                            "stacked": false,
+                            "region": "${AWS::Region}",
+                            "title": "Video Input (Sum)",
+                            "stat": "Maximum",
+                            "period": 60,
+                            "liveData": false,
+                            "setPeriodToTimeRange": true,
+                            "legend": {
+                                "position": "hidden"
+                            }
+                        }
+                    },
+                    {
+                        "height": 3,
+                        "width": 3,
+                        "y": 1,
+                        "x": 0,
+                        "type": "metric",
+                        "properties": {
+                            "metrics": [
+                                [ "${AWS::StackName}-metrics", "Stream Start", { "visible": false, "stat": "Average" } ],
+                                [ ".", "Stream End", { "visible": false, "stat": "Sum" } ],
+                                [ "AWS/IVS", "ConcurrentStreams" ],
+                                [ ".", "ConcurrentViews", { "visible": false } ]
+                            ],
+                            "view": "singleValue",
+                            "stacked": false,
+                            "region": "${AWS::Region}",
+                            "title": "Current Streams",
+                            "stat": "Maximum",
+                            "period": 60,
+                            "liveData": true,
+                            "setPeriodToTimeRange": false,
+                            "legend": {
+                                "position": "hidden"
+                            }
+                        }
+                    },
+                    {
+                        "height": 3,
+                        "width": 3,
+                        "y": 4,
+                        "x": 12,
+                        "type": "metric",
+                        "properties": {
+                            "metrics": [
+                                [ "AWS/IVS", "LiveDeliveredTime", { "id": "m2", "stat": "Sum" } ],
+                                [ { "expression": "ANOMALY_DETECTION_BAND(m2, 2)", "label": "LiveDeliveredTime (expected)", "id": "ad1", "color": "#95A5A6", "visible": false, "region": "us-west-2" } ]
+                            ],
+                            "view": "singleValue",
+                            "stacked": false,
+                            "region": "${AWS::Region}",
+                            "title": "Video Output (Sum)",
+                            "stat": "Maximum",
+                            "period": 60,
+                            "liveData": false,
+                            "setPeriodToTimeRange": true,
+                            "legend": {
+                                "position": "hidden"
+                            }
+                        }
+                    },
+                    {
+                        "height": 1,
+                        "width": 12,
+                        "y": 0,
+                        "x": 0,
+                        "type": "text",
+                        "properties": {
+                            "markdown": "\n## Usage - Input\n"
+                        }
+                    },
+                    {
+                        "height": 1,
+                        "width": 12,
+                        "y": 7,
+                        "x": 0,
+                        "type": "text",
+                        "properties": {
+                            "markdown": "\n## Stream State Changes\n"
+                        }
+                    },
+                    {
+                        "height": 6,
+                        "width": 3,
+                        "y": 8,
+                        "x": 0,
+                        "type": "metric",
+                        "properties": {
+                            "metrics": [
+                                [ "${AWS::StackName}-metrics", "Stream Start", { "label": "Stream Start", "visible": false } ],
+                                [ ".", "Stream End", { "visible": false } ],
+                                [ ".", "Stream Failure", { "color": "#d62728" } ]
+                            ],
+                            "view": "singleValue",
+                            "stacked": false,
+                            "region": "${AWS::Region}",
+                            "title": "Stream Failures",
+                            "stat": "Sum",
+                            "period": 60,
+                            "liveData": true,
+                            "setPeriodToTimeRange": true
                         }
                     }
-                },
-                {
-                    "height": 3,
-                    "width": 12,
-                    "y": 1,
-                    "x": 12,
-                    "type": "metric",
-                    "properties": {
-                        "metrics": [
-                            [ "AWS/IVS", "ConcurrentViews", { "stat": "Average" } ],
-                            [ ".", "LiveDeliveredTime" ]
-                        ],
-                        "view": "singleValue",
-                        "stacked": false,
-                        "region": "${AWS::Region}",
-                        "stat": "Sum",
-                        "period": 300,
-                        "setPeriodToTimeRange": true,
-                        "title": " "
-                    }
-                },
-                {
-                    "height": 3,
-                    "width": 12,
-                    "y": 18,
-                    "x": 12,
-                    "type": "metric",
-                    "properties": {
-                        "metrics": [
-                            [ "${AWS::StackName}-metrics", "Ingest Bitrate", { "id": "m1" } ],
-                            [ ".", "Ingest Resolution", { "id": "m2" } ]
-                        ],
-                        "view": "singleValue",
-                        "stacked": false,
-                        "region": "${AWS::Region}",
-                        "stat": "Sum",
-                        "period": 300,
-                        "setPeriodToTimeRange": true,
-                        "title": " "
-                    }
-                },
-                {
-                    "height": 3,
-                    "width": 12,
-                    "y": 18,
-                    "x": 0,
-                    "type": "metric",
-                    "properties": {
-                        "metrics": [
-                            [ "${AWS::StackName}-metrics", "Concurrent Broadcasts", { "label": "Concurrent Streams" } ],
-                            [ ".", "Concurrent Viewers", { "label": "Concurrent Views" } ]
-                        ],
-                        "view": "singleValue",
-                        "stacked": false,
-                        "region": "${AWS::Region}",
-                        "title": " ",
-                        "stat": "Sum",
-                        "period": 300,
-                        "liveData": true,
-                        "setPeriodToTimeRange": true
-                    }
-                },
-                {
-                    "height": 1,
-                    "width": 12,
-                    "y": 0,
-                    "x": 12,
-                    "type": "text",
-                    "properties": {
-                        "markdown": "\n## Usage - Output\n"
-                    }
-                },
-                {
-                    "height": 1,
-                    "width": 24,
-                    "y": 10,
-                    "x": 0,
-                    "type": "text",
-                    "properties": {
-                        "markdown": "\n## Stream State Changes\n"
-                    }
-                },
-                {
-                    "height": 1,
-                    "width": 24,
-                    "y": 17,
-                    "x": 0,
-                    "type": "text",
-                    "properties": {
-                        "markdown": "\n## Limit/Quota Breaches\n"
-                    }
-                },
-                {
-                    "height": 6,
-                    "width": 9,
-                    "y": 11,
-                    "x": 0,
-                    "type": "metric",
-                    "properties": {
-                        "metrics": [
-                            [ "${AWS::StackName}-metrics", "Stream Start", { "label": "Stream Start" } ],
-                            [ ".", "Stream End" ],
-                            [ ".", "Stream Failure" ]
-                        ],
-                        "view": "singleValue",
-                        "stacked": false,
-                        "region": "${AWS::Region}",
-                        "title": " ",
-                        "stat": "Sum",
-                        "period": 300,
-                        "liveData": true,
-                        "setPeriodToTimeRange": true
-                    }
-                },
-                {
-                    "height": 1,
-                    "width": 12,
-                    "y": 0,
-                    "x": 0,
-                    "type": "text",
-                    "properties": {
-                        "markdown": "\n## Usage - Input\n"
-                    }
-                },
-                {
-                    "height": 3,
-                    "width": 12,
-                    "y": 1,
-                    "x": 0,
-                    "type": "metric",
-                    "properties": {
-                        "metrics": [
-                            [ "AWS/IVS", "LiveDeliveredTime", { "visible": false } ],
-                            [ ".", "ConcurrentStreams", { "stat": "Average" } ],
-                            [ ".", "LiveInputTime" ]
-                        ],
-                        "view": "singleValue",
-                        "stacked": false,
-                        "region": "${AWS::Region}",
-                        "stat": "Sum",
-                        "period": 300,
-                        "setPeriodToTimeRange": true,
-                        "title": " "
-                    }
-                },
-                {
-                    "height": 6,
-                    "width": 24,
-                    "y": 4,
-                    "x": 0,
-                    "type": "metric",
-                    "properties": {
-                        "metrics": [
-                            [ "${AWS::StackName}-metrics", "Stream Start", { "visible": false } ],
-                            [ ".", "Stream End", { "visible": false, "stat": "Sum" } ],
-                            [ "AWS/IVS", "ConcurrentStreams" ],
-                            [ ".", "ConcurrentViews" ]
-                        ],
-                        "view": "timeSeries",
-                        "stacked": false,
-                        "region": "${AWS::Region}",
-                        "title": " ",
-                        "stat": "Average",
-                        "period": 300,
-                        "liveData": false,
-                        "setPeriodToTimeRange": true,
-                        "legend": {
-                            "position": "bottom"
-                        }
-                    }
-                }
-            ]
-        }
+                ]
+            }
 
 Outputs:
   MonitoringDashboard:
