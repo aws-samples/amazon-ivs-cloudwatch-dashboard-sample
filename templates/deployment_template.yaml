@@ -377,7 +377,7 @@ Resources:
                         "properties": {
                             "metrics": [
                                 [ "AWS/IVS", "LiveInputTime", { "id": "m1", "stat": "Sum" } ],
-                                [ { "expression": "ANOMALY_DETECTION_BAND(m1, 2)", "label": "LiveInputTime (expected)", "id": "ad1", "color": "#95A5A6", "visible": false, "region": "us-west-2" } ]
+                                [ { "expression": "ANOMALY_DETECTION_BAND(m1, 2)", "label": "LiveInputTime (expected)", "id": "ad1", "color": "#95A5A6", "visible": false, "region": "${AWS::Region}" } ]
                             ],
                             "view": "singleValue",
                             "stacked": false,
@@ -427,7 +427,7 @@ Resources:
                         "properties": {
                             "metrics": [
                                 [ "AWS/IVS", "LiveDeliveredTime", { "id": "m2", "stat": "Sum" } ],
-                                [ { "expression": "ANOMALY_DETECTION_BAND(m2, 2)", "label": "LiveDeliveredTime (expected)", "id": "ad1", "color": "#95A5A6", "visible": false, "region": "us-west-2" } ]
+                                [ { "expression": "ANOMALY_DETECTION_BAND(m2, 2)", "label": "LiveDeliveredTime (expected)", "id": "ad1", "color": "#95A5A6", "visible": false, "region": "${AWS::Region}" } ]
                             ],
                             "view": "singleValue",
                             "stacked": false,
