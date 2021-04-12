@@ -9,9 +9,9 @@ To deploy the solution, use one of the following CloudFormation templates and fo
 
 | AWS Region | AWS CloudFormation Template URL |
 |:-----------|:----------------------------|
-| EU (Ireland) |<a href="https://console.aws.amazon.com/cloudformation/home?region=eu-west-1#/stacks/new?stackName=ivs-cw-dashboard&templateURL=https%3A%2F%2Fivsqos-github-templates-us-east-1.s3.amazonaws.com%2Fcw%2Fdeployment_template.yaml" target="_blank">Launch stack</a> |
-| US (N.Virginia) |<a href="https://console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/new?stackName=ivs-cw-dashboard&templateURL=https%3A%2F%2Fivsqos-github-templates-us-east-1.s3.amazonaws.com%2Fcw%2Fdeployment_template.yaml" target="_blank">Launch stack</a> |
-| US (Oregon) |<a href="https://console.aws.amazon.com/cloudformation/home?region=us-west-2#/stacks/new?stackName=ivs-cw-dashboard&templateURL=https%3A%2F%2Fivsqos-github-templates-us-east-1.s3.amazonaws.com%2Fcw%2Fdeployment_template.yaml" target="_blank">Launch stack</a> |
+| EU (Ireland) |<a href="https://console.aws.amazon.com/cloudformation/home?region=eu-west-1#/stacks/new?stackName=ivs-cw-dashboard&templateURL=https%3A%2F%2Frodeolabz-us-east-1.s3.amazonaws.com%2Famazon-ivs-cloudwatch-dashboard-sample%2Fdeployment_template.yaml" target="_blank">Launch stack</a> |
+| US (N.Virginia) |<a href="https://console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/new?stackName=ivs-cw-dashboard&templateURL=https%3A%2F%2Frodeolabz-us-east-1.s3.amazonaws.com%2Famazon-ivs-cloudwatch-dashboard-sample%2Fdeployment_template.yaml" target="_blank">Launch stack</a> |
+| US (Oregon) |<a href="https://console.aws.amazon.com/cloudformation/home?region=us-west-2#/stacks/new?stackName=ivs-cw-dashboard&templateURL=https%3A%2F%2Frodeolabz-us-east-1.s3.amazonaws.com%2Famazon-ivs-cloudwatch-dashboard-sample%2Fdeployment_template.yaml" target="_blank">Launch stack</a> |
 
 ## Security
 
