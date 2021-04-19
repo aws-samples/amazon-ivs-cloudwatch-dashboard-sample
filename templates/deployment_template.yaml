@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
-Description: IVS CloudWatch Dashboard - Includes IVS service events and visualization through CloudWatch Dashboard
+Description: (SOIVS04132021) - Includes IVS CloudWatch metrics and custom metrics visualized through a sample CloudWatch Dashboard
 
 Resources:
 
